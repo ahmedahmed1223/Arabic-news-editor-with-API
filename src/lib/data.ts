@@ -1,6 +1,6 @@
-import type { Article } from './types';
+import type { Article, NewArticle } from './types';
 
-const newsData: Article[] = [
+let newsData: Article[] = [
   {
     id: 1,
     title: "اكتشاف كوكب جديد قد يدعم الحياة خارج المجموعة الشمسية",
@@ -98,18 +98,41 @@ function storeNewsInLocalStorage(articles: Article[]) {
   }
 }
 
+async function updateAndStoreNews(updatedNews: Article[]) {
+    newsData = updatedNews;
+    const sortedNews = newsData.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+    storeNewsInLocalStorage(sortedNews);
+    return sortedNews;
+}
+
+
 export async function getNews(): Promise<Article[]> {
   // Simulate network latency
-  await new Promise(resolve => setTimeout(resolve, 500));
+  await new Promise(resolve => setTimeout(resolve, 100));
   const sortedNews = newsData.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
   
-  // This function is called on the server, so we can't directly call localStorage here.
-  // Instead, we will fetch and store on the client side.
-  // We'll add a client component that fetches and stores the data.
-  // For now, let's just make sure the local storage logic is available.
   if (typeof window !== 'undefined') {
     storeNewsInLocalStorage(sortedNews);
   }
 
   return sortedNews;
+}
+
+
+export async function addNews(articleData: NewArticle): Promise<Article> {
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    const newArticle: Article = {
+        id: newsData.length > 0 ? Math.max(...newsData.map(a => a.id)) + 1 : 1,
+        ...articleData,
+        imageUrl: `https://placehold.co/600x400`, // Default placeholder
+        imageHint: articleData.category.toLowerCase(), // Use category for hint
+        publishedAt: new Date().toISOString(),
+        views: 0,
+    };
+    
+    const updatedNews = [...newsData, newArticle];
+    await updateAndStoreNews(updatedNews);
+
+    return newArticle;
 }

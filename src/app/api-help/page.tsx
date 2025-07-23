@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import type { Article } from '@/lib/types';
-import { Code, Copy } from 'lucide-react';
+import { Code, Copy, Download, Upload } from 'lucide-react';
 
 export default function ApiHelpPage() {
   const [localStorageArticles, setLocalStorageArticles] = useState<Article[]>([]);
@@ -32,9 +32,24 @@ export default function ApiHelpPage() {
     });
   };
 
-  const exampleCode = `fetch('${apiEndpoint}')
+  const exampleGetCode = `fetch('${apiEndpoint}')
   .then(response => response.json())
   .then(data => console.log(data));`;
+  
+  const examplePostCode = `fetch('${apiEndpoint}', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    title: "عنوان الخبر الجديد",
+    content: "محتوى الخبر هنا...",
+    category: "اقتصاد",
+    isUrgent: false
+  }),
+})
+.then(response => response.json())
+.then(data => console.log('Article created:', data));`;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -47,26 +62,48 @@ export default function ApiHelpPage() {
               مساعدة واجهة برمجة التطبيقات (API)
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-8">
             <section>
-              <h2 className="text-2xl font-bold mb-2">نقطة النهاية (Endpoint)</h2>
+              <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
+                <Download className="h-6 w-6 text-muted-foreground"/>
+                استعراض الأخبار (GET)
+              </h2>
               <p>يمكنك الحصول على جميع مقالات الأخبار عن طريق إرسال طلب GET إلى نقطة النهاية التالية:</p>
               <div className="flex items-center gap-2 mt-2 p-3 bg-secondary rounded-md">
-                <code className="flex-grow text-left dir-ltr font-code">{apiEndpoint}</code>
+                <code className="flex-grow text-left dir-ltr font-code">GET {apiEndpoint}</code>
                 <Button variant="ghost" size="icon" onClick={() => handleCopyToClipboard(apiEndpoint)}>
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="relative mt-4">
+                <h3 className="font-bold mb-2">مثال (JavaScript)</h3>
+                <pre className="bg-secondary rounded-md p-4 text-left dir-ltr overflow-x-auto font-code text-sm">
+                  {exampleGetCode}
+                </pre>
+                <Button variant="ghost" size="icon" className="absolute top-10 right-2" onClick={() => handleCopyToClipboard(exampleGetCode)}>
                   <Copy className="h-4 w-4" />
                 </Button>
               </div>
             </section>
 
             <section>
-              <h2 className="text-2xl font-bold mb-2">مثال على الاستخدام (JavaScript)</h2>
-              <p>فيما يلي مثال لكيفية جلب بيانات الأخبار باستخدام `fetch` في JavaScript.</p>
-              <div className="relative mt-2">
+              <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
+                <Upload className="h-6 w-6 text-muted-foreground" />
+                إرسال خبر جديد (POST)
+              </h2>
+              <p>يمكنك إنشاء خبر جديد عن طريق إرسال طلب POST إلى نفس نقطة النهاية مع بيانات الخبر في جسم الطلب بصيغة JSON. الحقول المطلوبة هي: <code>title</code>, <code>content</code>, <code>category</code>, <code>isUrgent</code>.</p>
+              <div className="flex items-center gap-2 mt-2 p-3 bg-secondary rounded-md">
+                <code className="flex-grow text-left dir-ltr font-code">POST {apiEndpoint}</code>
+                 <Button variant="ghost" size="icon" onClick={() => handleCopyToClipboard(apiEndpoint)}>
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="relative mt-4">
+                <h3 className="font-bold mb-2">مثال (JavaScript)</h3>
                 <pre className="bg-secondary rounded-md p-4 text-left dir-ltr overflow-x-auto font-code text-sm">
-                  {exampleCode}
+                  {examplePostCode}
                 </pre>
-                <Button variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => handleCopyToClipboard(exampleCode)}>
+                <Button variant="ghost" size="icon" className="absolute top-10 right-2" onClick={() => handleCopyToClipboard(examplePostCode)}>
                   <Copy className="h-4 w-4" />
                 </Button>
               </div>
