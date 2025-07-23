@@ -1,6 +1,13 @@
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
+import { Tajawal } from 'next/font/google'
+
+const tajawal = Tajawal({
+  subsets: ['arabic'],
+  weight: ['400', '700'],
+  variable: '--font-tajawal',
+})
 
 export const metadata: Metadata = {
   title: 'Akhbar Al Youm',
@@ -14,12 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ar" dir="rtl">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Alegreya:wght@400;700&display=swap" rel="stylesheet" />
-      </head>
-      <body className="font-body bg-background text-foreground antialiased">
+      <body className={`${tajawal.variable} font-sans bg-background text-foreground antialiased`}>
         {children}
         <Toaster />
       </body>

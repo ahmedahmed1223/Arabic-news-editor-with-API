@@ -91,48 +91,89 @@ let newsData: Article[] = [
   }
 ];
 
-// Helper function to store data in localStorage on the client-side
-function storeNewsInLocalStorage(articles: Article[]) {
+function getStoredNews(): Article[] {
+  if (typeof window !== 'undefined') {
+    const stored = localStorage.getItem('news_data');
+    if (stored) {
+      try {
+        // Basic validation to ensure it's an array
+        const parsed = JSON.parse(stored);
+        if(Array.isArray(parsed)) {
+            return parsed;
+        }
+      } catch (e) {
+        console.error("Failed to parse news from localStorage", e);
+        return newsData; // Fallback to initial data
+      }
+    }
+  }
+  return newsData;
+}
+
+function storeNews(articles: Article[]) {
   if (typeof window !== 'undefined') {
     localStorage.setItem('news_data', JSON.stringify(articles));
+    // Update the in-memory data as well
+    newsData = articles;
   }
 }
 
-async function updateAndStoreNews(updatedNews: Article[]) {
-    newsData = updatedNews;
-    const sortedNews = newsData.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
-    storeNewsInLocalStorage(sortedNews);
-    return sortedNews;
+// Initialize data from localStorage on client-side load
+if (typeof window !== 'undefined') {
+    newsData = getStoredNews();
 }
-
 
 export async function getNews(): Promise<Article[]> {
-  // Simulate network latency
-  await new Promise(resolve => setTimeout(resolve, 100));
-  const sortedNews = newsData.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
-  
-  if (typeof window !== 'undefined') {
-    storeNewsInLocalStorage(sortedNews);
-  }
-
-  return sortedNews;
+  await new Promise(resolve => setTimeout(resolve, 50));
+  const currentNews = getStoredNews();
+  return currentNews.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
 }
-
 
 export async function addNews(articleData: NewArticle): Promise<Article> {
     await new Promise(resolve => setTimeout(resolve, 100));
-    
+    const currentNews = getStoredNews();
     const newArticle: Article = {
-        id: newsData.length > 0 ? Math.max(...newsData.map(a => a.id)) + 1 : 1,
+        id: currentNews.length > 0 ? Math.max(...currentNews.map(a => a.id)) + 1 : 1,
         ...articleData,
-        imageUrl: `https://placehold.co/600x400`, // Default placeholder
-        imageHint: articleData.category.toLowerCase(), // Use category for hint
+        imageUrl: `https://placehold.co/600x400`,
+        imageHint: articleData.category.toLowerCase(),
         publishedAt: new Date().toISOString(),
-        views: 0,
+        views: Math.floor(Math.random() * 500),
     };
     
-    const updatedNews = [...newsData, newArticle];
-    await updateAndStoreNews(updatedNews);
-
+    const updatedNews = [...currentNews, newArticle];
+    storeNews(updatedNews);
     return newArticle;
+}
+
+export async function updateNews(articleId: number, updateData: Partial<NewArticle>): Promise<Article> {
+    await new Promise(resolve => setTimeout(resolve, 100));
+    let currentNews = getStoredNews();
+    const articleIndex = currentNews.findIndex(a => a.id === articleId);
+
+    if (articleIndex === -1) {
+        throw new Error("Article not found");
+    }
+
+    const updatedArticle = {
+        ...currentNews[articleIndex],
+        ...updateData,
+    };
+    
+    currentNews[articleIndex] = updatedArticle;
+    storeNews(currentNews);
+    return updatedArticle;
+}
+
+export async function deleteNews(articleId: number): Promise<{ success: true }> {
+    await new Promise(resolve => setTimeout(resolve, 100));
+    let currentNews = getStoredNews();
+    const updatedNews = currentNews.filter(a => a.id !== articleId);
+
+    if (currentNews.length === updatedNews.length) {
+        throw new Error("Article not found");
+    }
+
+    storeNews(updatedNews);
+    return { success: true };
 }
