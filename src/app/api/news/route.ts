@@ -1,10 +1,7 @@
-'use server';
 
 import { getNews, addNews, updateNews, deleteNews, deleteAllNews } from '@/lib/data';
 import { ArticleSchema } from '@/lib/types';
 import { NextResponse, NextRequest } from 'next/server';
-
-export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   // Add a no-cache header to ensure fresh data is fetched
