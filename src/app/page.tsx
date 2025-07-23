@@ -20,8 +20,9 @@ export default function HomePage() {
   const { toast } = useToast();
 
   const fetchArticles = async () => {
+    // Don't set isLoading to true on polling to avoid UI flicker
+    // setIsLoading(true); 
     try {
-      // setIsLoading(true); // Keep UI interactive during background refresh
       const news = await getNews();
       setArticles(news);
     } catch (error) {
@@ -40,7 +41,7 @@ export default function HomePage() {
     fetchArticles();
     const intervalId = setInterval(fetchArticles, 10000); // Poll every 10 seconds
 
-    return () => clearInterval(intervalId); // Cleanup on component unmount
+    return () => clearInterval(intervalId);
   }, []);
 
   const handleEdit = (article: Article) => {
@@ -59,25 +60,25 @@ export default function HomePage() {
   };
 
   return (
-    <div dir="rtl" className="min-h-screen flex flex-col bg-background font-body">
+    <div dir="rtl" className="min-h-screen flex flex-col bg-secondary font-sans">
       <Header />
       <NewsTicker articles={articles} />
-      <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
+      <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
-          <div className="lg:col-span-3 xl:col-span-3 lg:sticky lg:top-24">
+          <div className="lg:col-span-4 xl:col-span-3 lg:sticky lg:top-24">
             <StatsSidebar articles={articles} isLoading={isLoading}/>
           </div>
           
-          <div className="lg:col-span-9 xl:col-span-9">
+          <div className="lg:col-span-8 xl:col-span-9">
              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-4xl font-bold font-headline tracking-tight text-foreground">آخر الأخبار</h2>
-                 <div className="flex items-center gap-4">
-                  <Button onClick={handleAddNew} size="lg" className="shadow-md hover:shadow-lg transition-shadow">
-                      <PlusCircle className="ml-2 h-5 w-5" />
-                      إضافة خبر
-                  </Button>
-                </div>
+                <h1 className="text-3xl lg:text-4xl font-black tracking-tight text-foreground">
+                  لوحة التحكم بالأخبار
+                </h1>
+                <Button onClick={handleAddNew} size="lg" className="shadow-md hover:shadow-lg transition-shadow">
+                    <PlusCircle className="ml-2 h-5 w-5" />
+                    إضافة خبر
+                </Button>
             </div>
             <NewsTable
               articles={articles}
@@ -89,14 +90,6 @@ export default function HomePage() {
 
         </div>
       </main>
-      <footer className="bg-card border-t mt-12 py-8">
-        <div className="container mx-auto text-center text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} أخبار اليوم. جميع الحقوق محفوظة.</p>
-          <a href="/api-help" className="text-sm text-primary hover:underline mt-2 inline-block">
-            مساعدة واجهة برمجة التطبيقات (API)
-          </a>
-        </div>
-      </footer>
       
       <AddEditNewsDialog
         isOpen={dialogOpen}
