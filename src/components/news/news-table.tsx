@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import type { Article } from '@/lib/types';
 import {
   Table,
@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,7 +43,12 @@ interface NewsTableProps {
 
 export function NewsTable({ articles, onEdit, onDeleteSuccess, isLoading }: NewsTableProps) {
   const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: 'ascending' | 'descending' } | null>({ key: 'publishedAt', direction: 'descending' });
+  const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
   const { toast } = useToast();
+  
+  useEffect(() => {
+    setSelectedRows(new Set());
+  }, [articles]);
 
   const sortedArticles = useMemo(() => {
     let sortableItems = [...articles];
@@ -78,27 +84,50 @@ export function NewsTable({ articles, onEdit, onDeleteSuccess, isLoading }: News
     return sortConfig.direction === 'ascending' ? <ArrowUp className="h-4 w-4 text-foreground" /> : <ArrowDown className="h-4 w-4 text-foreground" />;
   };
   
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (ids: number[]) => {
     try {
-      await deleteNews(id);
+      await Promise.all(ids.map(id => deleteNews(id)));
       toast({
         title: "نجاح",
-        description: "تم حذف الخبر بنجاح.",
+        description: `تم حذف ${ids.length} خبر بنجاح.`,
         className: "bg-green-100 border-green-300 text-green-800",
       });
+      setSelectedRows(new Set());
       onDeleteSuccess();
     } catch (error) {
       toast({
         title: "خطأ",
-        description: "فشل حذف الخبر. يرجى المحاولة مرة أخرى.",
+        description: "فشل حذف الأخبار. يرجى المحاولة مرة أخرى.",
         variant: "destructive",
       });
     }
   };
 
+  const handleSelectRow = (id: number) => {
+    const newSelection = new Set(selectedRows);
+    if (newSelection.has(id)) {
+      newSelection.delete(id);
+    } else {
+      newSelection.add(id);
+    }
+    setSelectedRows(newSelection);
+  };
+
+  const handleSelectAll = (checked: boolean | 'indeterminate') => {
+    if (checked) {
+      setSelectedRows(new Set(articles.map(a => a.id)));
+    } else {
+      setSelectedRows(new Set());
+    }
+  };
+
+  const isAllSelected = selectedRows.size === articles.length && articles.length > 0;
+  const isSomeSelected = selectedRows.size > 0 && selectedRows.size < articles.length;
+
   const renderSkeleton = () => (
     [...Array(8)].map((_, i) => (
       <TableRow key={`skeleton-${i}`}>
+        <TableCell><Skeleton className="h-5 w-5" /></TableCell>
         <TableCell><Skeleton className="h-5 w-4/5" /></TableCell>
         <TableCell><Skeleton className="h-5 w-20" /></TableCell>
         <TableCell><Skeleton className="h-5 w-16" /></TableCell>
@@ -109,10 +138,45 @@ export function NewsTable({ articles, onEdit, onDeleteSuccess, isLoading }: News
   );
 
   return (
-    <div className="border rounded-xl bg-card shadow-sm overflow-hidden">
+    <div className="border rounded-xl bg-card shadow-lg overflow-hidden">
+        {selectedRows.size > 0 && (
+            <div className="p-4 bg-muted/50 border-b flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">
+                    {selectedRows.size} أخبار محددة
+                </span>
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button variant="destructive" size="sm">
+                            <Trash2 className="ml-2 h-4 w-4" />
+                            حذف المحدد
+                        </Button>
+                    </AlertDialogTrigger>
+                     <AlertDialogContent>
+                        <AlertDialogHeader>
+                        <AlertDialogTitle>هل أنت متأكد تمامًا؟</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            هذا الإجراء لا يمكن التراجع عنه. سيؤدي هذا إلى حذف الأخبار المحددة بشكل دائم.
+                        </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                        <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleDelete(Array.from(selectedRows))} className="bg-destructive hover:bg-destructive/90">
+                            نعم، قم بالحذف
+                        </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+            </div>
+        )}
       <Table>
         <TableHeader className="bg-muted/50">
           <TableRow>
+            <TableHead className="w-12">
+                <Checkbox
+                    checked={isAllSelected || (isSomeSelected ? 'indeterminate' : false)}
+                    onCheckedChange={handleSelectAll}
+                />
+            </TableHead>
             <TableHead onClick={() => requestSort('title')}>
               <div className="flex items-center gap-2 cursor-pointer select-none py-2">العنوان {getSortIndicator('title')}</div>
             </TableHead>
@@ -130,7 +194,13 @@ export function NewsTable({ articles, onEdit, onDeleteSuccess, isLoading }: News
         </TableHeader>
         <TableBody>
           {isLoading ? renderSkeleton() : sortedArticles.map(article => (
-            <TableRow key={article.id} className="hover:bg-muted/30">
+            <TableRow key={article.id} className="hover:bg-muted/30" data-state={selectedRows.has(article.id) ? 'selected' : ''}>
+              <TableCell>
+                <Checkbox
+                    checked={selectedRows.has(article.id)}
+                    onCheckedChange={() => handleSelectRow(article.id)}
+                 />
+              </TableCell>
               <TableCell className="font-medium">
                 <div className="flex items-center gap-3">
                     {article.isUrgent && <Zap className="h-4 w-4 text-destructive shrink-0" />}
@@ -175,7 +245,7 @@ export function NewsTable({ articles, onEdit, onDeleteSuccess, isLoading }: News
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                         <AlertDialogCancel>إلغاء</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleDelete(article.id)} className="bg-destructive hover:bg-destructive/90">
+                        <AlertDialogAction onClick={() => handleDelete([article.id])} className="bg-destructive hover:bg-destructive/90">
                             نعم، قم بالحذف
                         </AlertDialogAction>
                         </AlertDialogFooter>

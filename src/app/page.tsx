@@ -21,7 +21,7 @@ export default function HomePage() {
 
   const fetchArticles = async () => {
     try {
-      setIsLoading(true);
+      // setIsLoading(true); // Keep UI interactive during background refresh
       const news = await getNews();
       setArticles(news);
     } catch (error) {
@@ -38,6 +38,9 @@ export default function HomePage() {
 
   useEffect(() => {
     fetchArticles();
+    const intervalId = setInterval(fetchArticles, 10000); // Poll every 10 seconds
+
+    return () => clearInterval(intervalId); // Cleanup on component unmount
   }, []);
 
   const handleEdit = (article: Article) => {
@@ -56,21 +59,21 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div dir="rtl" className="min-h-screen flex flex-col bg-background font-body">
       <Header />
       <NewsTicker articles={articles} />
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
-          <div className="lg:col-span-3 xl:col-span-3">
+          <div className="lg:col-span-3 xl:col-span-3 lg:sticky lg:top-24">
             <StatsSidebar articles={articles} isLoading={isLoading}/>
           </div>
           
           <div className="lg:col-span-9 xl:col-span-9">
              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-3xl font-bold font-headline tracking-tight">آخر الأخبار</h2>
+                <h2 className="text-4xl font-bold font-headline tracking-tight text-foreground">آخر الأخبار</h2>
                  <div className="flex items-center gap-4">
-                  <Button onClick={handleAddNew}>
+                  <Button onClick={handleAddNew} size="lg" className="shadow-md hover:shadow-lg transition-shadow">
                       <PlusCircle className="ml-2 h-5 w-5" />
                       إضافة خبر
                   </Button>
