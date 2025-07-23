@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ArticleCard } from '@/components/news/article-card';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Card } from '@/components/ui/card';
 
 export default function HomePage() {
   const [articles, setArticles] = useState<Article[]>([]);
