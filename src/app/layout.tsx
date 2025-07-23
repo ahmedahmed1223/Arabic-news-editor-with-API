@@ -1,12 +1,12 @@
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
-import { Tajawal } from 'next/font/google'
+import { Cairo } from 'next/font/google'
 
-const tajawal = Tajawal({
-  subsets: ['arabic'],
-  weight: ['400', '700'],
-  variable: '--font-tajawal',
+const cairo = Cairo({
+  subsets: ['arabic', 'latin'],
+  weight: ['400', '700', '900'],
+  variable: '--font-cairo',
 })
 
 export const metadata: Metadata = {
@@ -21,7 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ar" dir="rtl">
-      <body className={`${tajawal.variable} font-sans bg-background text-foreground antialiased`}>
+      <body className={`${cairo.variable} font-sans bg-secondary/30 text-foreground`}>
         {children}
         <Toaster />
       </body>

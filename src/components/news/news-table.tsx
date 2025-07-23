@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -28,7 +27,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
-import { ArrowUpDown, MoreHorizontal, Pencil, Trash2, Zap } from 'lucide-react';
+import { ChevronsUpDown, MoreHorizontal, Pencil, Trash2, Zap, ArrowUp, ArrowDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { deleteNews } from '@/lib/data';
 
@@ -74,9 +73,9 @@ export function NewsTable({ articles, onEdit, onDeleteSuccess, isLoading }: News
 
   const getSortIndicator = (key: SortKey) => {
     if (!sortConfig || sortConfig.key !== key) {
-      return <ArrowUpDown className="h-4 w-4 text-muted-foreground/50" />;
+      return <ChevronsUpDown className="h-4 w-4 text-muted-foreground/50" />;
     }
-    return sortConfig.direction === 'ascending' ? '▲' : '▼';
+    return sortConfig.direction === 'ascending' ? <ArrowUp className="h-4 w-4 text-foreground" /> : <ArrowDown className="h-4 w-4 text-foreground" />;
   };
   
   const handleDelete = async (id: number) => {
@@ -98,33 +97,33 @@ export function NewsTable({ articles, onEdit, onDeleteSuccess, isLoading }: News
   };
 
   const renderSkeleton = () => (
-    [...Array(5)].map((_, i) => (
+    [...Array(8)].map((_, i) => (
       <TableRow key={`skeleton-${i}`}>
         <TableCell><Skeleton className="h-5 w-4/5" /></TableCell>
         <TableCell><Skeleton className="h-5 w-20" /></TableCell>
         <TableCell><Skeleton className="h-5 w-16" /></TableCell>
         <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-        <TableCell><Skeleton className="h-8 w-8" /></TableCell>
+        <TableCell><Skeleton className="h-8 w-8 rounded-full" /></TableCell>
       </TableRow>
     ))
   );
 
   return (
-    <div className="border rounded-lg bg-card shadow-sm overflow-hidden">
+    <div className="border rounded-xl bg-card shadow-sm overflow-hidden">
       <Table>
         <TableHeader className="bg-muted/50">
           <TableRow>
             <TableHead onClick={() => requestSort('title')}>
-              <div className="flex items-center gap-2 cursor-pointer select-none">العنوان {getSortIndicator('title')}</div>
+              <div className="flex items-center gap-2 cursor-pointer select-none py-2">العنوان {getSortIndicator('title')}</div>
             </TableHead>
             <TableHead onClick={() => requestSort('category')}>
-              <div className="flex items-center gap-2 cursor-pointer select-none">الفئة {getSortIndicator('category')}</div>
+              <div className="flex items-center gap-2 cursor-pointer select-none py-2">الفئة {getSortIndicator('category')}</div>
             </TableHead>
             <TableHead onClick={() => requestSort('views')}>
-              <div className="flex items-center gap-2 cursor-pointer select-none">المشاهدات {getSortIndicator('views')}</div>
+              <div className="flex items-center gap-2 cursor-pointer select-none py-2">المشاهدات {getSortIndicator('views')}</div>
             </TableHead>
             <TableHead onClick={() => requestSort('publishedAt')}>
-              <div className="flex items-center gap-2 cursor-pointer select-none">تاريخ النشر {getSortIndicator('publishedAt')}</div>
+              <div className="flex items-center gap-2 cursor-pointer select-none py-2">تاريخ النشر {getSortIndicator('publishedAt')}</div>
             </TableHead>
             <TableHead>إجراءات</TableHead>
           </TableRow>
@@ -133,17 +132,17 @@ export function NewsTable({ articles, onEdit, onDeleteSuccess, isLoading }: News
           {isLoading ? renderSkeleton() : sortedArticles.map(article => (
             <TableRow key={article.id} className="hover:bg-muted/30">
               <TableCell className="font-medium">
-                <div className="flex items-center gap-2">
-                    {article.isUrgent && <Zap className="h-4 w-4 text-destructive" />}
-                    <span>{article.title}</span>
+                <div className="flex items-center gap-3">
+                    {article.isUrgent && <Zap className="h-4 w-4 text-destructive shrink-0" />}
+                    <span className="truncate">{article.title}</span>
                 </div>
               </TableCell>
               <TableCell>
-                <Badge variant="secondary">{article.category}</Badge>
+                <Badge variant="outline" className="font-normal">{article.category}</Badge>
               </TableCell>
               <TableCell>{article.views.toLocaleString('ar-EG')}</TableCell>
-              <TableCell>
-                {format(new Date(article.publishedAt), 'd MMMM yyyy, h:mm a', { locale: ar })}
+              <TableCell className="whitespace-nowrap">
+                {format(new Date(article.publishedAt), 'd MMM yyyy, h:mm a', { locale: ar })}
               </TableCell>
               <TableCell>
                  <AlertDialog>
@@ -156,12 +155,12 @@ export function NewsTable({ articles, onEdit, onDeleteSuccess, isLoading }: News
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={() => onEdit(article)}>
-                                <Pencil className="mr-2 h-4 w-4" />
+                                <Pencil className="ml-2 h-4 w-4" />
                                 <span>تعديل</span>
                             </DropdownMenuItem>
                             <AlertDialogTrigger asChild>
                                 <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive">
-                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    <Trash2 className="ml-2 h-4 w-4" />
                                     <span>حذف</span>
                                 </DropdownMenuItem>
                             </AlertDialogTrigger>
