@@ -91,8 +91,25 @@ const newsData: Article[] = [
   }
 ];
 
+// Helper function to store data in localStorage on the client-side
+function storeNewsInLocalStorage(articles: Article[]) {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('news_data', JSON.stringify(articles));
+  }
+}
+
 export async function getNews(): Promise<Article[]> {
   // Simulate network latency
   await new Promise(resolve => setTimeout(resolve, 500));
-  return newsData.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+  const sortedNews = newsData.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+  
+  // This function is called on the server, so we can't directly call localStorage here.
+  // Instead, we will fetch and store on the client side.
+  // We'll add a client component that fetches and stores the data.
+  // For now, let's just make sure the local storage logic is available.
+  if (typeof window !== 'undefined') {
+    storeNewsInLocalStorage(sortedNews);
+  }
+
+  return sortedNews;
 }
