@@ -1,31 +1,16 @@
-
 'use client';
 
-import { useEffect, useState } from 'react';
 import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import type { Article } from '@/lib/types';
 import { Code, Copy, Download, Upload, Trash2, Pencil } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 
 export default function ApiHelpPage() {
-  const [localStorageArticles, setLocalStorageArticles] = useState<Article[]>([]);
   const { toast } = useToast();
   const apiEndpoint = '/api/news';
-
-  useEffect(() => {
-    try {
-      const storedArticles = localStorage.getItem('news_data');
-      if (storedArticles) {
-        setLocalStorageArticles(JSON.parse(storedArticles));
-      }
-    } catch (error) {
-      console.error("Failed to parse articles from localStorage", error);
-    }
-  }, []);
 
   const handleCopyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -152,24 +137,14 @@ export default function ApiHelpPage() {
               </div>
               {renderCodeBlock("مثال (JavaScript)", exampleDeleteCode)}
             </section>
-
+            
             <section>
-              <h2 className="text-2xl font-bold mb-2">البيانات المخزنة محليًا (LocalStorage)</h2>
-              <p>
-                يتم تخزين بيانات الأخبار أيضًا في `localStorage` بالمتصفح تحت المفتاح `news_data` للمحافظة عليها بين الجلسات وتحسين سرعة التحميل.
+               <h2 className="text-2xl font-bold mb-2">مصدر البيانات</h2>
+               <p>
+                يتم تخزين بيانات الأخبار في ذاكرة الخادم. هذا يعني أن البيانات ستتم إعادة تعيينها إلى حالتها الأولية في كل مرة يتم فيها إعادة تشغيل الخادم أو إعادة النشر.
               </p>
-              {localStorageArticles.length > 0 && (
-                 <div className="relative mt-4">
-                  <h3 className="font-bold mb-2 text-sm">عينة من البيانات المخزنة:</h3>
-                    <pre className="bg-secondary rounded-md p-4 text-left dir-ltr overflow-x-auto max-h-60 font-code text-xs">
-                      {JSON.stringify(localStorageArticles.slice(0, 2), null, 2)}
-                    </pre>
-                    <Button variant="ghost" size="icon" className="absolute top-10 right-2" onClick={() => handleCopyToClipboard(JSON.stringify(localStorageArticles.slice(0, 2), null, 2))}>
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                </div>
-              )}
             </section>
+
           </CardContent>
         </Card>
       </main>

@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import type { Article } from '@/lib/types';
-import { getNews } from '@/lib/data';
+import { getNews, deleteAllNews } from '@/lib/data';
 import { Header } from '@/components/layout/header';
 import { NewsTicker } from '@/components/layout/news-ticker';
 import { StatsSidebar } from '@/components/news/stats-sidebar';
@@ -22,7 +22,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { deleteAllNews } from '@/lib/data';
 import Link from 'next/link';
 
 export default function HomePage() {
@@ -32,7 +31,8 @@ export default function HomePage() {
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const { toast } = useToast();
 
-  const fetchArticles = async () => {
+  const fetchArticles = useCallback(async () => {
+    // We don't set loading to true here to avoid flickering on interval refresh
     try {
       const news = await getNews();
       setArticles(news);
@@ -46,14 +46,14 @@ export default function HomePage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [toast]);
 
   useEffect(() => {
     fetchArticles();
     const intervalId = setInterval(fetchArticles, 10000); // Poll every 10 seconds
 
     return () => clearInterval(intervalId);
-  }, []);
+  }, [fetchArticles]);
   
   const handleEdit = (article: Article) => {
     setSelectedArticle(article);
@@ -71,6 +71,7 @@ export default function HomePage() {
   };
   
   const handleDeleteAll = async () => {
+    setIsLoading(true);
     try {
       await deleteAllNews();
       toast({
@@ -85,6 +86,8 @@ export default function HomePage() {
         description: "فشل حذف جميع الأخبار. يرجى المحاولة مرة أخرى.",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
