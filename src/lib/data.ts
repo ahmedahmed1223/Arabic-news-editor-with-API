@@ -3,24 +3,29 @@
 import type { Article, NewArticle } from './types';
 
 function getApiEndpoint() {
-    const VERCEL_URL = process.env.VERCEL_URL;
-    const NEXT_PUBLIC_VERCEL_URL = process.env.NEXT_PUBLIC_VERCEL_URL;
-    
-    if (VERCEL_URL) {
-        return `https://${VERCEL_URL}/api/news`;
+    // For server-side rendering, we need an absolute URL.
+    // For client-side, a relative one is fine.
+    if (typeof window === 'undefined') {
+        const VERCEL_URL = process.env.VERCEL_URL;
+        const NEXT_PUBLIC_VERCEL_URL = process.env.NEXT_PUBLIC_VERCEL_URL;
+        
+        if (VERCEL_URL) {
+            return `https://${VERCEL_URL}/api/news`;
+        }
+        if (NEXT_PUBLIC_VERCEL_URL) {
+           return `https://${NEXT_PUBLIC_VERCEL_URL}/api/news`;
+        }
+        // A fallback for other server environments.
+        // Make sure to set the HOSTNAME environment variable.
+        const hostname = process.env.HOSTNAME || 'localhost:9002';
+        return `http://${hostname}/api/news`;
     }
-    if (NEXT_PUBLIC_VERCEL_URL) {
-       return `https://${NEXT_PUBLIC_VERCEL_URL}/api/news`;
-    }
-    // Assume localhost for local development
-    return 'http://localhost:9002/api/news';
+    // Client-side, relative path is sufficient.
+    return '/api/news';
 }
 
-
-const API_ENDPOINT = getApiEndpoint();
-
 export async function getNews(): Promise<Article[]> {
-    const response = await fetch(API_ENDPOINT, { cache: 'no-store' });
+    const response = await fetch(getApiEndpoint(), { cache: 'no-store' });
     if (!response.ok) {
         console.error("Failed to fetch news, status:", response.status);
         const errorText = await response.text();
@@ -31,7 +36,7 @@ export async function getNews(): Promise<Article[]> {
 }
 
 export async function addNews(articleData: NewArticle): Promise<Article> {
-    const response = await fetch(API_ENDPOINT, {
+    const response = await fetch(getApiEndpoint(), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(articleData),
@@ -45,7 +50,7 @@ export async function addNews(articleData: NewArticle): Promise<Article> {
 }
 
 export async function updateNews(articleId: number, updateData: Partial<NewArticle>): Promise<Article> {
-    const response = await fetch(`${API_ENDPOINT}?id=${articleId}`, {
+    const response = await fetch(`${getApiEndpoint()}?id=${articleId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updateData),
@@ -59,7 +64,7 @@ export async function updateNews(articleId: number, updateData: Partial<NewArtic
 }
 
 export async function deleteNews(articleId: number): Promise<{ success: true }> {
-    const response = await fetch(`${API_ENDPOINT}?id=${articleId}`, {
+    const response = await fetch(`${getApiEndpoint()}?id=${articleId}`, {
         method: 'DELETE',
         cache: 'no-store'
     });
@@ -71,7 +76,7 @@ export async function deleteNews(articleId: number): Promise<{ success: true }> 
 }
 
 export async function deleteAllNews(): Promise<{ success: true }> {
-    const response = await fetch(API_ENDPOINT, {
+    const response = await fetch(getApiEndpoint(), {
         method: 'DELETE',
         cache: 'no-store'
     });
