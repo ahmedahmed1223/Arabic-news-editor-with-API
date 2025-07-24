@@ -1,6 +1,6 @@
 
 import { getNews, addNews, updateNews, deleteNews, deleteAllNews } from '@/lib/data';
-import { ArticleSchema } from '@/lib/types';
+import { ArticleSchema, ApiArticleSchema } from '@/lib/types';
 import { NextResponse, NextRequest } from 'next/server';
 
 export async function GET(request: NextRequest) {
@@ -16,13 +16,7 @@ export async function POST(request: Request) {
   try {
     const newArticleData = await request.json();
     
-    const validatedData = ArticleSchema.partial().omit({ 
-        id: true, 
-        publishedAt: true, 
-        views: true,
-        imageHint: true,
-        imageUrl: true
-    }).safeParse(newArticleData);
+    const validatedData = ApiArticleSchema.safeParse(newArticleData);
 
     if (!validatedData.success) {
       return NextResponse.json({ error: 'Invalid article data', details: validatedData.error.flatten() }, { status: 400 });
@@ -68,13 +62,7 @@ async function handleRequest(request: NextRequest, handler: (id: number, data?: 
         let payload;
         if (request.method === 'PATCH') {
             payload = await request.json();
-            const validatedData = ArticleSchema.partial().omit({ 
-                id: true, 
-                publishedAt: true, 
-                views: true,
-                imageHint: true,
-                imageUrl: true
-            }).safeParse(payload);
+            const validatedData = ApiArticleSchema.partial().safeParse(payload);
              if (!validatedData.success) {
                 return NextResponse.json({ error: 'Invalid article data', details: validatedData.error.flatten() }, { status: 400 });
             }

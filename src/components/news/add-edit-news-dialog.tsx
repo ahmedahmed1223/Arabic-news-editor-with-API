@@ -30,6 +30,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
+import { ApiArticleSchema } from '@/lib/types';
 
 interface AddEditNewsDialogProps {
   isOpen: boolean;
@@ -38,12 +39,7 @@ interface AddEditNewsDialogProps {
   article: Article | null;
 }
 
-const formSchema = z.object({
-  title: z.string().min(5, { message: "يجب أن يكون العنوان 5 أحرف على الأقل." }),
-  content: z.string().min(20, { message: "يجب أن يكون المحتوى 20 حرفًا على الأقل." }),
-  category: z.string().min(2, { message: "الفئة مطلوبة." }),
-  isUrgent: z.boolean(),
-});
+const formSchema = ApiArticleSchema;
 
 type FormData = z.infer<typeof formSchema>;
 

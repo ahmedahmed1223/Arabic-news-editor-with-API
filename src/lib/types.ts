@@ -12,6 +12,23 @@ export const ArticleSchema = z.object({
   isUrgent: z.boolean(),
 });
 
+export const ApiArticleSchema = z.object({
+    tile: z.string().optional(), // Accept 'tile'
+    title: z.string().optional(), // And 'title'
+    content: z.string(),
+    category: z.string(),
+    isUrgent: z.boolean(),
+  }).transform((data) => ({ // Transform to the expected structure
+    ...data,
+    title: data.title ?? data.tile,
+  })).pipe(z.object({
+    title: z.string().min(5, { message: "يجب أن يكون العنوان 5 أحرف على الأقل." }),
+    content: z.string().min(20, { message: "يجب أن يكون المحتوى 20 حرفًا على الأقل." }),
+    category: z.string().min(2, { message: "الفئة مطلوبة." }),
+    isUrgent: z.boolean(),
+  }));
+
+
 export type Article = z.infer<typeof ArticleSchema>;
 
 export type NewArticle = Omit<Article, 'id' | 'imageUrl' | 'imageHint' | 'publishedAt' | 'views'>;
