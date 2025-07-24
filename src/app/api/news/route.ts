@@ -1,10 +1,9 @@
 
 import { getNews, addNews, updateNews, deleteNews, deleteAllNews } from '@/lib/data';
-import { ArticleSchema, ApiArticleSchema } from '@/lib/types';
+import { ApiArticleSchema } from '@/lib/types';
 import { NextResponse, NextRequest } from 'next/server';
 
 export async function GET(request: NextRequest) {
-  // Add a no-cache header to ensure fresh data is fetched
   const headers = new Headers();
   headers.set('Cache-Control', 'no-store, max-age=0');
   
@@ -24,7 +23,6 @@ export async function POST(request: Request) {
 
     const newArticle = await addNews(validatedData.data);
     
-    // After adding, get the full sorted list to return
     const allNews = await getNews();
 
     return NextResponse.json(allNews, { status: 201 });
@@ -42,14 +40,13 @@ async function handleRequest(request: NextRequest, handler: (id: number, data?: 
     const url = new URL(request.url);
     const idParam = url.searchParams.get('id');
 
-    // Handle deleteAll special case for DELETE method
     if (request.method === 'DELETE' && !idParam) {
         try {
             const result = await deleteAllNews();
             return NextResponse.json(result);
         } catch (error: any) {
              console.error(`API DELETE ALL Error:`, error);
-             return NextResponse.json({ error: 'Failed to delete all articles' }, { status: 500 });
+             return NextResponse.json({ error: 'Failed to delete all articles', details: error.message }, { status: 500 });
         }
     }
 
@@ -76,7 +73,7 @@ async function handleRequest(request: NextRequest, handler: (id: number, data?: 
         if (error.message.includes('not found')) {
             return NextResponse.json({ error: 'Article not found' }, { status: 404 });
         }
-        return NextResponse.json({ error: `Failed to ${request.method.toLowerCase()} article` }, { status: 500 });
+        return NextResponse.json({ error: `Failed to ${request.method.toLowerCase()} article`, details: error.message }, { status: 500 });
     }
 }
 

@@ -147,10 +147,15 @@ export default function HomePage() {
       
        <footer className="bg-card mt-8 py-6 border-t">
         <div className="container mx-auto text-center text-muted-foreground">
-           <Link href="/api-help" className="text-sm text-primary hover:underline mt-2 inline-block mb-2">
-            مساعدة الواجهة البرمجية (API)
-          </Link>
-          <p>&copy; {new Date().getFullYear()} أخبار اليوم. جميع الحقوق محفوظة.</p>
+           <div className="flex justify-center gap-4">
+             <Link href="/api-help" className="text-sm text-primary hover:underline">
+                مساعدة الواجهة البرمجية (API)
+              </Link>
+              <Link href="/api-test" className="text-sm text-primary hover:underline">
+                اختبار الواجهة البرمجية (API)
+              </Link>
+           </div>
+          <p className="mt-2">&copy; {new Date().getFullYear()} أخبار اليوم. جميع الحقوق محفوظة.</p>
         </div>
       </footer>
 

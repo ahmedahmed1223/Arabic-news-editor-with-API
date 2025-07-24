@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -144,7 +145,7 @@ export default function ApiHelpPage() {
                 <Trash2 className="h-6 w-6 text-muted-foreground" />
                 حذف خبر (DELETE)
               </h2>
-              <p>لحذف خبر، أرسل طلب DELETE مع تحديد <code>id</code> الخبر كـ query parameter.</p>
+              <p>لحذف خبر، أرسل طلب DELETE مع تحديد <code>id</code> الخبر كـ query parameter. لحذف جميع الأخبار، أرسل طلب DELETE بدون ID.</p>
                <div className="flex items-center gap-2 mt-2 p-3 bg-secondary rounded-md">
                 <Badge variant="secondary" className="text-red-600 bg-red-100">DELETE</Badge>
                 <code className="flex-grow text-left dir-ltr font-code">{`${apiEndpoint}?id={ID}`}</code>
@@ -174,10 +175,15 @@ export default function ApiHelpPage() {
       </main>
       <footer className="bg-card mt-8 py-6">
         <div className="container mx-auto text-center text-muted-foreground">
-           <Link href="/" className="text-sm text-primary hover:underline mt-2 inline-block mb-2">
-            العودة للصفحة الرئيسية
-          </Link>
-          <p>&copy; {new Date().getFullYear()} أخبار اليوم. جميع الحقوق محفوظة.</p>
+           <div className="flex justify-center gap-4">
+              <Link href="/" className="text-sm text-primary hover:underline">
+                العودة للرئيسية
+              </Link>
+              <Link href="/api-test" className="text-sm text-primary hover:underline">
+                اختبار الواجهة البرمجية (API)
+              </Link>
+            </div>
+          <p className="mt-2">&copy; {new Date().getFullYear()} أخبار اليوم. جميع الحقوق محفوظة.</p>
         </div>
       </footer>
     </div>

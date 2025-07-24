@@ -13,24 +13,13 @@ export const ArticleSchema = z.object({
 });
 
 export const ApiArticleSchema = z.object({
-    tile: z.string().min(5, { message: "يجب أن يكون العنوان 5 أحرف على الأقل." }).optional(),
-    title: z.string().min(5, { message: "يجب أن يكون العنوان 5 أحرف على الأقل." }).optional(),
+    title: z.string().min(5, { message: "يجب أن يكون العنوان 5 أحرف على الأقل." }),
     content: z.string().min(20, { message: "يجب أن يكون المحتوى 20 حرفًا على الأقل." }),
     category: z.string().min(2, { message: "الفئة مطلوبة." }),
     isUrgent: z.boolean(),
-  })
-  .refine(data => data.title || data.tile, {
-    message: "يجب توفير حقل 'title' أو 'tile'.",
-    path: ["title"], // Path to show error on
-  })
-  .transform((data) => ({
-    title: data.title ?? data.tile!,
-    content: data.content,
-    category: data.category,
-    isUrgent: data.isUrgent,
-  }));
+  });
 
 
 export type Article = z.infer<typeof ArticleSchema>;
 
-export type NewArticle = Omit<Article, 'id' | 'imageUrl' | 'imageHint' | 'publishedAt' | 'views'>;
+export type NewArticle = z.infer<typeof ApiArticleSchema>;
