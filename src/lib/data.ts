@@ -35,6 +35,7 @@ export async function addNews(articleData: NewArticle): Promise<Article> {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(articleData),
+        cache: 'no-store'
     });
     if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -48,6 +49,7 @@ export async function updateNews(articleId: number, updateData: Partial<NewArtic
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updateData),
+        cache: 'no-store'
     });
      if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -59,6 +61,7 @@ export async function updateNews(articleId: number, updateData: Partial<NewArtic
 export async function deleteNews(articleId: number): Promise<{ success: true }> {
     const response = await fetch(`${API_ENDPOINT}?id=${articleId}`, {
         method: 'DELETE',
+        cache: 'no-store'
     });
     if (!response.ok) {
        const errorData = await response.json().catch(() => ({}));
@@ -70,6 +73,7 @@ export async function deleteNews(articleId: number): Promise<{ success: true }> 
 export async function deleteAllNews(): Promise<{ success: true }> {
     const response = await fetch(API_ENDPOINT, {
         method: 'DELETE',
+        cache: 'no-store'
     });
      if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
