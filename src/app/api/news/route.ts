@@ -22,11 +22,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid article data', details: validatedData.error.flatten() }, { status: 400 });
     }
 
-    await addNews(validatedData.data);
+    const newArticle = await addNews(validatedData.data);
     
-    const allNews = await getNews();
-
-    return NextResponse.json(allNews, { status: 201 });
+    return NextResponse.json(newArticle, { status: 201 });
 
   } catch (error) {
     console.error('API POST Error:', error);
