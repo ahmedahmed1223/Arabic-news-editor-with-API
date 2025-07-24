@@ -147,7 +147,7 @@ export async function addNews(articleData: NewArticle): Promise<Article> {
         id: currentNews.length > 0 ? Math.max(...currentNews.map(a => a.id)) + 1 : 1,
         ...articleData,
         imageUrl: `https://placehold.co/600x400.png`,
-        imageHint: articleData.category.toLowerCase(),
+        imageHint: articleData.category.toLowerCase().split(' ')[0] || 'news',
         publishedAt: new Date().toISOString(),
         views: Math.floor(Math.random() * 500),
     };
