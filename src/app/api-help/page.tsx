@@ -53,7 +53,7 @@ export default function ApiHelpPage() {
 .then(response => response.json())
 .then(data => console.log('Article created:', data));`;
 
-  const examplePatchCode = `fetch(\`\${apiEndpoint}?id=1\`, {
+  const examplePatchCode = `fetch(\`${apiEndpoint}?id=1\`, {
   method: 'PATCH',
   headers: {
     'Content-Type': 'application/json',
@@ -66,7 +66,7 @@ export default function ApiHelpPage() {
 .then(response => response.json())
 .then(data => console.log('Article updated:', data));`;
 
-  const exampleDeleteCode = `fetch(\`\${apiEndpoint}?id=1\`, {
+  const exampleDeleteCode = `fetch(\`${apiEndpoint}?id=1\`, {
   method: 'DELETE',
 })
 .then(response => response.json())
