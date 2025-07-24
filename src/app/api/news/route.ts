@@ -15,13 +15,15 @@ export async function POST(request: Request) {
   try {
     const newArticleData = await request.json();
     
+    // The incoming data is the object itself, not nested under a 'data' property.
     const validatedData = ApiArticleSchema.safeParse(newArticleData);
 
     if (!validatedData.success) {
       return NextResponse.json({ error: 'Invalid article data', details: validatedData.error.flatten() }, { status: 400 });
     }
 
-    const newArticle = await addNews(validatedData.data);
+    // Pass the validated data directly to addNews.
+    await addNews(validatedData.data);
     
     const allNews = await getNews();
 
