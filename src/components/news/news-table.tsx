@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -44,6 +45,8 @@ interface NewsTableProps {
 export function NewsTable({ articles, onEdit, onDeleteSuccess, isLoading }: NewsTableProps) {
   const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: 'ascending' | 'descending' } | null>({ key: 'publishedAt', direction: 'descending' });
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [idsToDelete, setIdsToDelete] = useState<number[]>([]);
   const { toast } = useToast();
   
   useEffect(() => {
@@ -84,12 +87,12 @@ export function NewsTable({ articles, onEdit, onDeleteSuccess, isLoading }: News
     return sortConfig.direction === 'ascending' ? <ArrowUp className="h-4 w-4 text-foreground" /> : <ArrowDown className="h-4 w-4 text-foreground" />;
   };
   
-  const handleDelete = async (ids: number[]) => {
+  const handleDelete = async () => {
     try {
-      await Promise.all(ids.map(id => deleteNews(id)));
+      await Promise.all(idsToDelete.map(id => deleteNews(id)));
       toast({
         title: "نجاح",
-        description: `تم حذف ${ids.length} خبر بنجاح.`,
+        description: `تم حذف ${idsToDelete.length} خبر بنجاح.`,
         className: "bg-green-100 border-green-300 text-green-800",
       });
       setSelectedRows(new Set());
@@ -100,6 +103,16 @@ export function NewsTable({ articles, onEdit, onDeleteSuccess, isLoading }: News
         description: "فشل حذف الأخبار. يرجى المحاولة مرة أخرى.",
         variant: "destructive",
       });
+    } finally {
+        setIsDeleteDialogOpen(false);
+        setIdsToDelete([]);
+    }
+  };
+
+  const openDeleteDialog = (ids: number[]) => {
+    if (ids.length > 0) {
+        setIdsToDelete(ids);
+        setIsDeleteDialogOpen(true);
     }
   };
 
@@ -138,84 +151,68 @@ export function NewsTable({ articles, onEdit, onDeleteSuccess, isLoading }: News
   );
 
   return (
-    <div className="border rounded-xl bg-card shadow-lg overflow-hidden">
-        {selectedRows.size > 0 && (
-            <div className="p-4 bg-muted/50 border-b flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">
-                    {selectedRows.size} أخبار محددة
-                </span>
-                <AlertDialog>
+    <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <div className="border rounded-xl bg-card shadow-lg overflow-hidden">
+            {selectedRows.size > 0 && (
+                <div className="p-4 bg-muted/50 border-b flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">
+                        {selectedRows.size} أخبار محددة
+                    </span>
                     <AlertDialogTrigger asChild>
-                        <Button variant="destructive" size="sm">
+                        <Button variant="destructive" size="sm" onClick={() => openDeleteDialog(Array.from(selectedRows))}>
                             <Trash2 className="ml-2 h-4 w-4" />
                             حذف المحدد
                         </Button>
                     </AlertDialogTrigger>
-                     <AlertDialogContent>
-                        <AlertDialogHeader>
-                        <AlertDialogTitle>هل أنت متأكد تمامًا؟</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            هذا الإجراء لا يمكن التراجع عنه. سيؤدي هذا إلى حذف الأخبار المحددة بشكل دائم.
-                        </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                        <AlertDialogCancel>إلغاء</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleDelete(Array.from(selectedRows))} className="bg-destructive hover:bg-destructive/90">
-                            نعم، قم بالحذف
-                        </AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
-            </div>
-        )}
-      <Table>
-        <TableHeader className="bg-muted/50">
-          <TableRow>
-            <TableHead className="w-12">
-                <Checkbox
-                    checked={isAllSelected || (isSomeSelected ? 'indeterminate' : false)}
-                    onCheckedChange={handleSelectAll}
-                />
-            </TableHead>
-            <TableHead onClick={() => requestSort('title')}>
-              <div className="flex items-center gap-2 cursor-pointer select-none py-2">العنوان {getSortIndicator('title')}</div>
-            </TableHead>
-            <TableHead onClick={() => requestSort('category')}>
-              <div className="flex items-center gap-2 cursor-pointer select-none py-2">الفئة {getSortIndicator('category')}</div>
-            </TableHead>
-            <TableHead onClick={() => requestSort('views')}>
-              <div className="flex items-center gap-2 cursor-pointer select-none py-2">المشاهدات {getSortIndicator('views')}</div>
-            </TableHead>
-            <TableHead onClick={() => requestSort('publishedAt')}>
-              <div className="flex items-center gap-2 cursor-pointer select-none py-2">تاريخ النشر {getSortIndicator('publishedAt')}</div>
-            </TableHead>
-            <TableHead>إجراءات</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {isLoading ? renderSkeleton() : sortedArticles.map(article => (
-            <TableRow key={article.id} className="hover:bg-muted/30" data-state={selectedRows.has(article.id) ? 'selected' : ''}>
-              <TableCell>
-                <Checkbox
-                    checked={selectedRows.has(article.id)}
-                    onCheckedChange={() => handleSelectRow(article.id)}
-                 />
-              </TableCell>
-              <TableCell className="font-medium">
-                <div className="flex items-center gap-3">
-                    {article.isUrgent && <Zap className="h-4 w-4 text-destructive shrink-0" />}
-                    <span className="truncate">{article.title}</span>
                 </div>
-              </TableCell>
-              <TableCell>
-                <Badge variant="outline" className="font-normal">{article.category}</Badge>
-              </TableCell>
-              <TableCell>{article.views.toLocaleString('ar-EG')}</TableCell>
-              <TableCell className="whitespace-nowrap">
-                {format(new Date(article.publishedAt), 'd MMM yyyy, h:mm a', { locale: ar })}
-              </TableCell>
-              <TableCell>
-                 <AlertDialog>
+            )}
+        <Table>
+            <TableHeader className="bg-muted/50">
+            <TableRow>
+                <TableHead className="w-12">
+                    <Checkbox
+                        checked={isAllSelected || (isSomeSelected ? 'indeterminate' : false)}
+                        onCheckedChange={handleSelectAll}
+                    />
+                </TableHead>
+                <TableHead onClick={() => requestSort('title')}>
+                <div className="flex items-center gap-2 cursor-pointer select-none py-2">العنوان {getSortIndicator('title')}</div>
+                </TableHead>
+                <TableHead onClick={() => requestSort('category')}>
+                <div className="flex items-center gap-2 cursor-pointer select-none py-2">الفئة {getSortIndicator('category')}</div>
+                </TableHead>
+                <TableHead onClick={() => requestSort('views')}>
+                <div className="flex items-center gap-2 cursor-pointer select-none py-2">المشاهدات {getSortIndicator('views')}</div>
+                </TableHead>
+                <TableHead onClick={() => requestSort('publishedAt')}>
+                <div className="flex items-center gap-2 cursor-pointer select-none py-2">تاريخ النشر {getSortIndicator('publishedAt')}</div>
+                </TableHead>
+                <TableHead>إجراءات</TableHead>
+            </TableRow>
+            </TableHeader>
+            <TableBody>
+            {isLoading ? renderSkeleton() : sortedArticles.map(article => (
+                <TableRow key={article.id} className="hover:bg-muted/30" data-state={selectedRows.has(article.id) ? 'selected' : ''}>
+                <TableCell>
+                    <Checkbox
+                        checked={selectedRows.has(article.id)}
+                        onCheckedChange={() => handleSelectRow(article.id)}
+                    />
+                </TableCell>
+                <TableCell className="font-medium">
+                    <div className="flex items-center gap-3">
+                        {article.isUrgent && <Zap className="h-4 w-4 text-destructive shrink-0" />}
+                        <span className="truncate">{article.title}</span>
+                    </div>
+                </TableCell>
+                <TableCell>
+                    <Badge variant="outline" className="font-normal">{article.category}</Badge>
+                </TableCell>
+                <TableCell>{article.views.toLocaleString('ar-EG')}</TableCell>
+                <TableCell className="whitespace-nowrap">
+                    {format(new Date(article.publishedAt), 'd MMM yyyy, h:mm a', { locale: ar })}
+                </TableCell>
+                <TableCell>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" className="h-8 w-8 p-0">
@@ -229,38 +226,38 @@ export function NewsTable({ articles, onEdit, onDeleteSuccess, isLoading }: News
                                 <span>تعديل</span>
                             </DropdownMenuItem>
                             <AlertDialogTrigger asChild>
-                                <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive">
+                                <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={() => openDeleteDialog([article.id])}>
                                     <Trash2 className="ml-2 h-4 w-4" />
                                     <span>حذف</span>
                                 </DropdownMenuItem>
                             </AlertDialogTrigger>
                         </DropdownMenuContent>
                     </DropdownMenu>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                        <AlertDialogTitle>هل أنت متأكد تمامًا؟</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            هذا الإجراء لا يمكن التراجع عنه. سيؤدي هذا إلى حذف الخبر بشكل دائم من خوادمنا.
-                        </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                        <AlertDialogCancel>إلغاء</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleDelete([article.id])} className="bg-destructive hover:bg-destructive/90">
-                            نعم، قم بالحذف
-                        </AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-       {!isLoading && articles.length === 0 && (
-          <div className="text-center p-8 text-muted-foreground">
-            لم يتم العثور على أخبار.
-          </div>
-        )}
-    </div>
+                </TableCell>
+                </TableRow>
+            ))}
+            </TableBody>
+        </Table>
+        {!isLoading && articles.length === 0 && (
+            <div className="text-center p-8 text-muted-foreground">
+                لم يتم العثور على أخبار.
+            </div>
+            )}
+        </div>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>هل أنت متأكد تمامًا؟</AlertDialogTitle>
+                <AlertDialogDescription>
+                    هذا الإجراء لا يمكن التراجع عنه. سيؤدي هذا إلى حذف {idsToDelete.length > 1 ? `${idsToDelete.length} أخبار` : 'الخبر المحدد'} بشكل دائم.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setIdsToDelete([])}>إلغاء</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
+                    نعم، قم بالحذف
+                </AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+    </AlertDialog>
   );
 }
