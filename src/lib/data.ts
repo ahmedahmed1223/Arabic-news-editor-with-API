@@ -1,15 +1,31 @@
-// This file runs on the client only.
+// This file runs on the client and the server.
 // It contains functions that interact with the API routes.
-'use client';
-
 import type { Article, NewArticle } from './types';
 
-const API_ENDPOINT = '/api/news';
+function getApiEndpoint() {
+    const VERCEL_URL = process.env.VERCEL_URL;
+    const NEXT_PUBLIC_VERCEL_URL = process.env.NEXT_PUBLIC_VERCEL_URL;
+    
+    if (VERCEL_URL) {
+        return `https://${VERCEL_URL}/api/news`;
+    }
+    if (NEXT_PUBLIC_VERCEL_URL) {
+       return `https://${NEXT_PUBLIC_VERCEL_URL}/api/news`;
+    }
+    // Assume localhost for local development
+    return 'http://localhost:9002/api/news';
+}
+
+
+const API_ENDPOINT = getApiEndpoint();
 
 export async function getNews(): Promise<Article[]> {
     const response = await fetch(API_ENDPOINT, { cache: 'no-store' });
     if (!response.ok) {
-        throw new Error('Failed to fetch news');
+        console.error("Failed to fetch news, status:", response.status);
+        const errorText = await response.text();
+        console.error("Error response body:", errorText);
+        throw new Error(`Failed to fetch news. Details: ${errorText}`);
     }
     return response.json();
 }
