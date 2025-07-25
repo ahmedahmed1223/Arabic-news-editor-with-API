@@ -79,6 +79,7 @@ export async function GET(
 ) {
   const format = params.format.toLowerCase();
   const articles = getNews();
+  const today = new Date().toISOString().split('T')[0]; // Format YYYY-MM-DD
 
   let content: string;
   let contentType: string;
@@ -88,17 +89,17 @@ export async function GET(
     case 'txt':
       content = generateTxt(articles);
       contentType = 'text/plain; charset=utf-8';
-      filename = 'akhbar_al_youm.txt';
+      filename = `akhbar_al_youm_${today}.txt`;
       break;
     case 'csv':
       content = generateCsv(articles);
       contentType = 'text/csv; charset=utf-8';
-      filename = 'akhbar_al_youm.csv';
+      filename = `akhbar_al_youm_${today}.csv`;
       break;
     case 'xml':
       content = generateXml(articles);
       contentType = 'application/xml; charset=utf-8';
-      filename = 'akhbar_al_youm.xml';
+      filename = `akhbar_al_youm_${today}.xml`;
       break;
     default:
       return NextResponse.json({ error: 'Unsupported format' }, { status: 400 });
@@ -113,4 +114,3 @@ export async function GET(
     },
   });
 }
-

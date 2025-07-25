@@ -268,6 +268,7 @@ export default function HomePage() {
 
               {categories.map(cat => (
                 <TabsContent key={cat} value={cat}>
+                  <div dir="rtl">
                     {viewMode === 'list' ? (
                         <NewsTable
                         articles={getFilteredAndSortedArticles(cat)}
@@ -285,6 +286,7 @@ export default function HomePage() {
                         isLoading={isLoading}
                         />
                     )}
+                   </div>
                 </TabsContent>
               ))}
             </Tabs>
