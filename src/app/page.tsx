@@ -9,7 +9,7 @@ import { NewsTicker } from '@/components/layout/news-ticker';
 import { StatsSidebar } from '@/components/news/stats-sidebar';
 import { NewsTable } from '@/components/news/news-table';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Trash2, Download, Rss, List, LayoutGrid, Search, ChevronsUpDown, ArrowDown, ArrowUp } from 'lucide-react';
+import { PlusCircle, Trash2, Download, Rss, List, LayoutGrid, Search } from 'lucide-react';
 import { AddEditNewsDialog } from '@/components/news/add-edit-news-dialog';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -33,7 +33,7 @@ import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { NewsGrid } from '@/components/news/news-grid';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import type { SortKey } from '@/lib/types';
 
@@ -47,7 +47,6 @@ export default function HomePage() {
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [searchQuery, setSearchQuery] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('all');
   const { toast } = useToast();
   const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: 'ascending' | 'descending' } | null>({ key: 'publishedAt', direction: 'descending' });
 
@@ -130,35 +129,32 @@ export default function HomePage() {
     setSortConfig({ key, direction });
   };
   
-  const sortedArticles = useMemo(() => {
-    let sortableItems = [...articles];
-    if (sortConfig !== null) {
-      sortableItems.sort((a, b) => {
-        const aValue = a[sortConfig.key];
-        const bValue = b[sortConfig.key];
+  const getFilteredAndSortedArticles = useCallback((categoryFilter: string) => {
+      let sortableItems = [...articles];
+      if (sortConfig !== null) {
+        sortableItems.sort((a, b) => {
+          const aValue = a[sortConfig.key];
+          const bValue = b[sortConfig.key];
 
-        if (aValue < bValue) {
-          return sortConfig.direction === 'ascending' ? -1 : 1;
-        }
-        if (aValue > bValue) {
-          return sortConfig.direction === 'ascending' ? 1 : -1;
-        }
-        return 0;
-      });
-    }
-    return sortableItems;
-  }, [articles, sortConfig]);
+          if (aValue < bValue) {
+            return sortConfig.direction === 'ascending' ? -1 : 1;
+          }
+          if (aValue > bValue) {
+            return sortConfig.direction === 'ascending' ? 1 : -1;
+          }
+          return 0;
+        });
+      }
 
-  const filteredArticles = useMemo(() => {
-    return sortedArticles
-      .filter(article => 
-        categoryFilter === 'all' || article.category === categoryFilter
-      )
-      .filter(article =>
-        article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        article.content.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-  }, [sortedArticles, searchQuery, categoryFilter]);
+      return sortableItems
+        .filter(article => 
+          categoryFilter === 'all' || article.category === categoryFilter
+        )
+        .filter(article =>
+          article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          article.content.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+  }, [articles, sortConfig, searchQuery]);
 
 
   return (
@@ -240,60 +236,59 @@ export default function HomePage() {
             </div>
 
             <Card className="p-4 sm:p-6 mb-6 shadow-md border-border/80">
-              <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
-                  <div className="relative sm:col-span-6">
-                     <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                     <Input 
-                        placeholder="ابحث في الأخبار..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pr-10"
-                      />
-                  </div>
-                  <div className="sm:col-span-3">
-                     <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="فلترة حسب الفئة" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categories.map(cat => (
-                            <SelectItem key={cat} value={cat}>{cat === 'all' ? 'جميع الفئات' : cat}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                  </div>
-                   <div className="sm:col-span-3 flex justify-end">
-                      <ToggleGroup type="single" value={viewMode} onValueChange={(value: ViewMode) => value && setViewMode(value)} aria-label="طريقة العرض">
-                          <ToggleGroupItem value="list" aria-label="عرض القائمة">
-                              <List className="h-5 w-5" />
-                          </ToggleGroupItem>
-                          <ToggleGroupItem value="grid" aria-label="عرض الشبكة">
-                              <LayoutGrid className="h-5 w-5" />
-                          </ToggleGroupItem>
-                      </ToggleGroup>
-                  </div>
-              </div>
+                <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
+                    <div className="relative sm:col-span-9">
+                       <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                       <Input 
+                          placeholder="ابحث في الأخبار..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="pr-10"
+                        />
+                    </div>
+                     <div className="sm:col-span-3 flex justify-end">
+                        <ToggleGroup type="single" value={viewMode} onValueChange={(value: ViewMode) => value && setViewMode(value)} aria-label="طريقة العرض">
+                            <ToggleGroupItem value="list" aria-label="عرض القائمة">
+                                <List className="h-5 w-5" />
+                            </ToggleGroupItem>
+                            <ToggleGroupItem value="grid" aria-label="عرض الشبكة">
+                                <LayoutGrid className="h-5 w-5" />
+                            </ToggleGroupItem>
+                        </ToggleGroup>
+                    </div>
+                </div>
             </Card>
             
-            {viewMode === 'list' ? (
-                <NewsTable
-                articles={filteredArticles}
-                onEdit={handleEdit}
-                onDeleteSuccess={fetchArticles}
-                isLoading={isLoading}
-                sortConfig={sortConfig}
-                requestSort={requestSort}
-                />
-            ) : (
-                <NewsGrid
-                articles={filteredArticles}
-                onEdit={handleEdit}
-                onDeleteSuccess={fetchArticles}
-                isLoading={isLoading}
-                />
-            )}
-          </div>
+            <Tabs defaultValue="all" className="w-full">
+              <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 mb-4">
+                 {categories.map(cat => (
+                    <TabsTrigger key={cat} value={cat}>{cat === 'all' ? 'جميع الفئات' : cat}</TabsTrigger>
+                  ))}
+              </TabsList>
 
+              {categories.map(cat => (
+                <TabsContent key={cat} value={cat}>
+                    {viewMode === 'list' ? (
+                        <NewsTable
+                        articles={getFilteredAndSortedArticles(cat)}
+                        onEdit={handleEdit}
+                        onDeleteSuccess={fetchArticles}
+                        isLoading={isLoading}
+                        sortConfig={sortConfig}
+                        requestSort={requestSort}
+                        />
+                    ) : (
+                        <NewsGrid
+                        articles={getFilteredAndSortedArticles(cat)}
+                        onEdit={handleEdit}
+                        onDeleteSuccess={fetchArticles}
+                        isLoading={isLoading}
+                        />
+                    )}
+                </TabsContent>
+              ))}
+            </Tabs>
+          </div>
         </div>
       </main>
       
