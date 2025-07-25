@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
@@ -8,7 +9,7 @@ import { NewsTicker } from '@/components/layout/news-ticker';
 import { StatsSidebar } from '@/components/news/stats-sidebar';
 import { NewsTable } from '@/components/news/news-table';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Trash2 } from 'lucide-react';
+import { PlusCircle, Trash2, Download, Rss } from 'lucide-react';
 import { AddEditNewsDialog } from '@/components/news/add-edit-news-dialog';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -22,7 +23,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 export default function HomePage() {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -90,6 +98,10 @@ export default function HomePage() {
       setIsLoading(false);
     }
   };
+  
+  const handleExport = (format: 'txt' | 'csv' | 'xml') => {
+      window.open(`/api/export/${format}`, '_blank');
+  };
 
   return (
     <div dir="rtl" className="min-h-screen flex flex-col bg-secondary font-sans">
@@ -100,31 +112,62 @@ export default function HomePage() {
           
           <aside className="lg:col-span-4 xl:col-span-3 lg:sticky lg:top-24 space-y-6">
             <StatsSidebar articles={articles} isLoading={isLoading}/>
-             <div className="p-4 bg-card rounded-xl border">
-                 <h3 className="font-bold mb-4">إجراءات عامة</h3>
-                <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                        <Button variant="destructive" className="w-full">
-                            <Trash2 className="ml-2 h-4 w-4" />
-                            حذف جميع الأخبار
-                        </Button>
-                    </AlertDialogTrigger>
-                     <AlertDialogContent>
-                        <AlertDialogHeader>
-                        <AlertDialogTitle>هل أنت متأكد تمامًا؟</AlertDialogTitle>
-                        <AlertDialogDescription>
-                           هذا الإجراء لا يمكن التراجع عنه. سيؤدي هذا إلى حذف <strong>جميع</strong> الأخبار بشكل دائم.
-                        </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                        <AlertDialogCancel>إلغاء</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDeleteAll} className="bg-destructive hover:bg-destructive/90">
-                            نعم، قم بحذف الكل
-                        </AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
-            </div>
+             <Card className="shadow-md border-border/80">
+                <CardHeader>
+                    <CardTitle className="text-xl font-bold">إجراءات سريعة</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                   <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                          <Button variant="outline" className="w-full justify-between">
+                              تصدير الأخبار
+                              <Download className="mr-auto h-4 w-4" />
+                          </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-56">
+                          <DropdownMenuItem onClick={() => handleExport('csv')}>
+                              تصدير كـ CSV
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleExport('xml')}>
+                              تصدير كـ XML
+                          </DropdownMenuItem>
+                           <DropdownMenuItem onClick={() => handleExport('txt')}>
+                              تصدير كـ TXT
+                          </DropdownMenuItem>
+                      </DropdownMenuContent>
+                  </DropdownMenu>
+
+                   <Button asChild variant="outline" className="w-full justify-between">
+                       <a href="/api/rss" target="_blank" rel="noopener noreferrer">
+                        خلاصة RSS
+                        <Rss className="mr-auto h-4 w-4" />
+                       </a>
+                    </Button>
+
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button variant="destructive" className="w-full justify-between">
+                                حذف جميع الأخبار
+                                <Trash2 className="mr-auto h-4 w-4" />
+                            </Button>
+                        </AlertDialogTrigger>
+                         <AlertDialogContent>
+                            <AlertDialogHeader>
+                            <AlertDialogTitle>هل أنت متأكد تمامًا؟</AlertDialogTitle>
+                            <AlertDialogDescription>
+                               هذا الإجراء لا يمكن التراجع عنه. سيؤدي هذا إلى حذف <strong>جميع</strong> الأخبار بشكل دائم.
+                            </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleDeleteAll} className="bg-destructive hover:bg-destructive/90">
+                                نعم، قم بحذف الكل
+                            </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </CardContent>
+            </Card>
           </aside>
           
           <div className="lg:col-span-8 xl:col-span-9">
@@ -171,3 +214,4 @@ export default function HomePage() {
     </div>
   );
 }
+
