@@ -11,8 +11,8 @@ const cairo = Cairo({
 })
 
 export const metadata: Metadata = {
-  title: 'Akhbar Al Youm',
-  description: 'Your daily news source',
+  title: 'أخبار اليوم | لوحة التحكم',
+  description: 'لوحة تحكم متكاملة لإدارة المحتوى الإخباري بفعالية وسهولة.',
 };
 
 export default function RootLayout({
