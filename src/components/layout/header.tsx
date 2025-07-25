@@ -1,5 +1,6 @@
 import { Newspaper } from 'lucide-react';
 import Link from 'next/link';
+import { ThemeCustomizer } from './theme-customizer';
 
 export function Header() {
   return (
@@ -13,9 +14,12 @@ export function Header() {
             أخبار اليوم
           </h1>
         </Link>
-        <p className="text-sm text-muted-foreground hidden md:block">
-          مصدرك الموثوق للأخبار العاجلة والتحليلات
-        </p>
+        <div className="flex items-center gap-4">
+            <p className="text-sm text-muted-foreground hidden md:block">
+              مصدرك الموثوق للأخبار العاجلة والتحليلات
+            </p>
+            <ThemeCustomizer />
+        </div>
       </div>
     </header>
   );

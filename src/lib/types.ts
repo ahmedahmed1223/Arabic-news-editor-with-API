@@ -21,5 +21,6 @@ export const ApiArticleSchema = z.object({
 
 
 export type Article = z.infer<typeof ArticleSchema>;
+export type SortKey = keyof Article;
 
 export type NewArticle = z.infer<typeof ApiArticleSchema>;

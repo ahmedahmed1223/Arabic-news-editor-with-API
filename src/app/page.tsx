@@ -9,7 +9,7 @@ import { NewsTicker } from '@/components/layout/news-ticker';
 import { StatsSidebar } from '@/components/news/stats-sidebar';
 import { NewsTable } from '@/components/news/news-table';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Trash2, Download, Rss, List, LayoutGrid, Search } from 'lucide-react';
+import { PlusCircle, Trash2, Download, Rss, List, LayoutGrid, Search, ChevronsUpDown, ArrowDown, ArrowUp } from 'lucide-react';
 import { AddEditNewsDialog } from '@/components/news/add-edit-news-dialog';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -35,6 +35,7 @@ import { NewsGrid } from '@/components/news/news-grid';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import type { SortKey } from '@/lib/types';
 
 
 type ViewMode = 'list' | 'grid';
@@ -48,8 +49,11 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const { toast } = useToast();
+  const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: 'ascending' | 'descending' } | null>({ key: 'publishedAt', direction: 'descending' });
+
 
   const fetchArticles = useCallback(async () => {
+    setIsLoading(true);
     try {
       const news = await getNews();
       setArticles(news);
@@ -117,8 +121,36 @@ export default function HomePage() {
     return ['all', ...Array.from(new Set(allCategories))];
   }, [articles]);
 
+
+  const requestSort = (key: SortKey) => {
+    let direction: 'ascending' | 'descending' = 'ascending';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
+      direction = 'descending';
+    }
+    setSortConfig({ key, direction });
+  };
+  
+  const sortedArticles = useMemo(() => {
+    let sortableItems = [...articles];
+    if (sortConfig !== null) {
+      sortableItems.sort((a, b) => {
+        const aValue = a[sortConfig.key];
+        const bValue = b[sortConfig.key];
+
+        if (aValue < bValue) {
+          return sortConfig.direction === 'ascending' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return sortConfig.direction === 'ascending' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    return sortableItems;
+  }, [articles, sortConfig]);
+
   const filteredArticles = useMemo(() => {
-    return articles
+    return sortedArticles
       .filter(article => 
         categoryFilter === 'all' || article.category === categoryFilter
       )
@@ -126,7 +158,7 @@ export default function HomePage() {
         article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         article.content.toLowerCase().includes(searchQuery.toLowerCase())
       );
-  }, [articles, searchQuery, categoryFilter]);
+  }, [sortedArticles, searchQuery, categoryFilter]);
 
 
   return (
@@ -249,6 +281,8 @@ export default function HomePage() {
                 onEdit={handleEdit}
                 onDeleteSuccess={fetchArticles}
                 isLoading={isLoading}
+                sortConfig={sortConfig}
+                requestSort={requestSort}
                 />
             ) : (
                 <NewsGrid
@@ -286,4 +320,3 @@ export default function HomePage() {
     </div>
   );
 }
-

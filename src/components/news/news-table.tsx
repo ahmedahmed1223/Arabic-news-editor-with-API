@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import type { Article } from '@/lib/types';
+import type { Article, SortKey } from '@/lib/types';
 import {
   Table,
   TableHeader,
@@ -23,7 +23,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -33,17 +32,16 @@ import { ChevronsUpDown, MoreHorizontal, Pencil, Trash2, Zap, ArrowUp, ArrowDown
 import { useToast } from '@/hooks/use-toast';
 import { deleteNews } from '@/lib/data';
 
-type SortKey = keyof Article;
-
 interface NewsTableProps {
   articles: Article[];
   onEdit: (article: Article) => void;
   onDeleteSuccess: () => void;
   isLoading: boolean;
+  sortConfig: { key: SortKey; direction: 'ascending' | 'descending' } | null;
+  requestSort: (key: SortKey) => void;
 }
 
-export function NewsTable({ articles, onEdit, onDeleteSuccess, isLoading }: NewsTableProps) {
-  const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: 'ascending' | 'descending' } | null>({ key: 'publishedAt', direction: 'descending' });
+export function NewsTable({ articles, onEdit, onDeleteSuccess, isLoading, sortConfig, requestSort }: NewsTableProps) {
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [idsToDelete, setIdsToDelete] = useState<number[]>([]);
@@ -52,33 +50,6 @@ export function NewsTable({ articles, onEdit, onDeleteSuccess, isLoading }: News
   useEffect(() => {
     setSelectedRows(new Set());
   }, [articles]);
-
-  const sortedArticles = useMemo(() => {
-    let sortableItems = [...articles];
-    if (sortConfig !== null) {
-      sortableItems.sort((a, b) => {
-        const aValue = a[sortConfig.key];
-        const bValue = b[sortConfig.key];
-
-        if (aValue < bValue) {
-          return sortConfig.direction === 'ascending' ? -1 : 1;
-        }
-        if (aValue > bValue) {
-          return sortConfig.direction === 'ascending' ? 1 : -1;
-        }
-        return 0;
-      });
-    }
-    return sortableItems;
-  }, [articles, sortConfig]);
-
-  const requestSort = (key: SortKey) => {
-    let direction: 'ascending' | 'descending' = 'ascending';
-    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
-      direction = 'descending';
-    }
-    setSortConfig({ key, direction });
-  };
 
   const getSortIndicator = (key: SortKey) => {
     if (!sortConfig || sortConfig.key !== key) {
@@ -158,12 +129,10 @@ export function NewsTable({ articles, onEdit, onDeleteSuccess, isLoading }: News
                     <span className="text-sm text-muted-foreground">
                         {selectedRows.size} أخبار محددة
                     </span>
-                    <AlertDialogTrigger asChild>
-                        <Button variant="destructive" size="sm" onClick={() => openDeleteDialog(Array.from(selectedRows))}>
-                            <Trash2 className="ml-2 h-4 w-4" />
-                            حذف المحدد
-                        </Button>
-                    </AlertDialogTrigger>
+                    <Button variant="destructive" size="sm" onClick={() => openDeleteDialog(Array.from(selectedRows))}>
+                        <Trash2 className="ml-2 h-4 w-4" />
+                        حذف المحدد
+                    </Button>
                 </div>
             )}
         <Table>
@@ -191,7 +160,7 @@ export function NewsTable({ articles, onEdit, onDeleteSuccess, isLoading }: News
             </TableRow>
             </TableHeader>
             <TableBody>
-            {isLoading ? renderSkeleton() : sortedArticles.map(article => (
+            {isLoading ? renderSkeleton() : articles.map(article => (
                 <TableRow key={article.id} className="hover:bg-muted/30" data-state={selectedRows.has(article.id) ? 'selected' : ''}>
                 <TableCell>
                     <Checkbox
@@ -225,12 +194,10 @@ export function NewsTable({ articles, onEdit, onDeleteSuccess, isLoading }: News
                                 <Pencil className="ml-2 h-4 w-4" />
                                 <span>تعديل</span>
                             </DropdownMenuItem>
-                            <AlertDialogTrigger asChild>
-                                <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={() => openDeleteDialog([article.id])}>
-                                    <Trash2 className="ml-2 h-4 w-4" />
-                                    <span>حذف</span>
-                                </DropdownMenuItem>
-                            </AlertDialogTrigger>
+                            <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={() => openDeleteDialog([article.id])}>
+                                <Trash2 className="ml-2 h-4 w-4" />
+                                <span>حذف</span>
+                            </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </TableCell>
