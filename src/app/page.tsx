@@ -72,9 +72,6 @@ export default function HomePage() {
 
   useEffect(() => {
     fetchArticles();
-    const intervalId = setInterval(fetchArticles, 10000); 
-
-    return () => clearInterval(intervalId);
   }, [fetchArticles]);
   
   const handleEdit = (article: Article) => {
@@ -112,10 +109,6 @@ export default function HomePage() {
       setIsLoading(false);
     }
   };
-  
-  const handleExport = (format: 'txt' | 'csv' | 'xml') => {
-      window.open(`/api/export/${format}`, '_blank');
-  };
 
   const categories = useMemo(() => {
     const allCategories = articles.map(a => a.category);
@@ -149,33 +142,6 @@ export default function HomePage() {
                     <CardTitle className="text-xl font-bold">إجراءات سريعة</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                   <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                          <Button variant="outline" className="w-full justify-between">
-                              تصدير الأخبار
-                              <Download className="mr-auto h-4 w-4" />
-                          </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent className="w-56">
-                          <DropdownMenuItem onClick={() => handleExport('csv')}>
-                              تصدير كـ CSV
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleExport('xml')}>
-                              تصدير كـ XML
-                          </DropdownMenuItem>
-                           <DropdownMenuItem onClick={() => handleExport('txt')}>
-                              تصدير كـ TXT
-                          </DropdownMenuItem>
-                      </DropdownMenuContent>
-                  </DropdownMenu>
-
-                   <Button asChild variant="outline" className="w-full justify-between">
-                       <a href="/api/rss" target="_blank" rel="noopener noreferrer">
-                        خلاصة RSS
-                        <Rss className="mr-auto h-4 w-4" />
-                       </a>
-                    </Button>
-
                     <AlertDialog>
                         <AlertDialogTrigger asChild>
                             <Button variant="destructive" className="w-full justify-between">
